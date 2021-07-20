@@ -1,0 +1,6 @@
+.vscode
+.exercism
+
+# elixir
+.elixir_ls
+.DS_store
