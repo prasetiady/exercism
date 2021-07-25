@@ -17,20 +17,33 @@ defmodule Change do
 
   @spec generate(list, integer) :: {:ok, list} | {:error, String.t()}
   def generate(coins, target) do
-    {change, remaining} =
-      coins
-      |> Enum.reverse()
-      |> Enum.reduce({[], target}, fn coin, {change, remaining} ->
-        quotient = div(remaining, coin)
-        change = List.duplicate(coin, quotient) ++ change
-        remaining = remaining - coin * quotient
-        {change, remaining}
-      end)
-
-    if remaining == 0 do
-      {:ok, change}
-    else
+    if target < 0 do
       {:error, "cannot change"}
+    else
+      generate(Enum.reverse(coins), target, [])
+    end
+  end
+
+  defp generate(_, 0, change), do: {:ok, change}
+  defp generate([], _, _), do: {:error, "cannot change"}
+
+  defp generate(coins, remaining, change) do
+    {coin, coins} = List.pop_at(coins, 0)
+
+    # get result if current coin not included
+    {status_1, result_1} = generate(coins, remaining, change)
+
+    quotient = div(remaining, coin)
+    change = List.duplicate(coin, quotient) ++ change
+    remaining = remaining - coin * quotient
+    # get result if current coin included
+    {status_2, result_2} = generate(coins, remaining, change)
+
+    cond do
+      status_1 == :error -> {status_2, result_2}
+      status_2 == :error -> {status_1, result_1}
+      length(result_1) < length(result_2) -> {status_1, result_1}
+      true -> {status_2, result_2}
     end
   end
 end
